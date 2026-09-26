@@ -44,7 +44,8 @@ Each approved artist gets:
 
 - Per-page metadata via CMS + auto keywords for artist/city pages.
 - `/sitemap.xml`, `/robots.txt` (allows major AI crawlers), `/llms.txt` site map for assistants.
-- Set production **`APP_URL`** to the live HTTPS origin before deploy.
+- Set production **`APP_URL`** to the live HTTPS origin before deploy (e.g. `https://mua.olready.in`).
+- Initial Google listing: **`docs/GOOGLE_SEARCH_CONSOLE.md`** (`GOOGLE_SITE_VERIFICATION` + sitemap submit).
 
 ## Commands
 

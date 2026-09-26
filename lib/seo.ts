@@ -17,6 +17,7 @@ function breadcrumb(path:string,labels:[string,string][]):Record<string,unknown>
 export function structuredData(site:Site,path:string){
  const organisation={'@type':'Organization','@id':absolute('/#organization'),name:site.settings.brand,url:absolute('/'),logo:absolute(site.settings.socialImage||site.settings.heroImage||'/hero.png'),description:site.settings.footer,contactPoint:{'@type':'ContactPoint',contactType:'customer support',telephone:'+'+site.settings.whatsapp,areaServed:'IN',availableLanguage:['en','hi'],description:site.settings.supportHours}};
  const graph:Record<string,unknown>[]=[organisation,{'@type':'WebSite','@id':absolute('/#website'),name:site.settings.brand,url:absolute('/'),publisher:{'@id':absolute('/#organization')},inLanguage:'en-IN'}];
+ if(path==='/'){const home=site.pages.find(p=>p.slug==='/');graph.push({'@type':'WebPage','@id':absolute('/')+'#webpage',url:absolute('/'),name:home?.title||site.settings.brand,description:home?.description||site.settings.footer,isPartOf:{'@id':absolute('/#website')},about:{'@id':absolute('/#organization')},inLanguage:'en-IN'});}
  if(path==='/about')for(const s of site.pages.find(p=>p.slug==='/about')?.sections||[]){graph.push({'@type':'Person',name:s.title,...(s.designation?{jobTitle:s.designation}:{}),description:s.body,...(s.image?{image:absolute(s.image)}:{}),url:absolute('/about')});}
  const crumbs: [string,string][]=[['Home','/']];
  if(path==='/top-grossing-artists')crumbs.push(['Top Grossing Artists',path]);
@@ -28,7 +29,17 @@ export function structuredData(site:Site,path:string){
  return {'@context':'https://schema.org','@graph':graph};
 }
 export const jsonLd=(value:unknown)=>JSON.stringify(value).replace(/</g,'\\u003c');
-export function upgradeSEO(site:Site){site.directory??=[];ensureArtistSlugs(site);if(!site.pages.some(p=>p.slug==='/community'))site.pages.push({slug:'/community',title:'Our artist community | OLREADY',description:'Meet makeup artists who have been part of the OLREADY community.',eyebrow:'OUR ARTIST COMMUNITY',heading:'Meet the artists.',accent:'',body:'Explore published artist profiles, their work and the cities they serve.',primaryLabel:'Explore plans',primaryHref:'/plans',secondaryLabel:'',secondaryHref:'',sections:[]});if(site.copy.seoRelease==='9')return;site.settings.supportHours='Monday to Saturday, 10:00 am–6:30 pm IST';site.settings.seoKeywords='OLREADY, makeup artists, MUA, bridal makeup artist, makeup artist plans, verified enquiries, artist profile, top grossing makeup artists India';site.settings.socialImage??='';site.copy.seoRelease='9';}
+export function upgradeSEO(site:Site){
+ site.directory??=[];ensureArtistSlugs(site);
+ if(!site.pages.some(p=>p.slug==='/community'))site.pages.push({slug:'/community',title:'Our artist community | OLREADY',description:'Meet makeup artists who have been part of the OLREADY community.',eyebrow:'OUR ARTIST COMMUNITY',heading:'Meet the artists.',accent:'',body:'Explore published artist profiles, their work and the cities they serve.',primaryLabel:'Explore plans',primaryHref:'/plans',secondaryLabel:'',secondaryHref:'',sections:[]});
+ if(site.copy.seoRelease!=='9'&&site.copy.seoRelease!=='10'){site.settings.supportHours='Monday to Saturday, 10:00 am–6:30 pm IST';site.settings.seoKeywords='OLREADY, makeup artists, MUA, bridal makeup artist, makeup artist plans, verified enquiries, artist profile, top grossing makeup artists India';site.settings.socialImage??='';site.copy.seoRelease='9';}
+ if(site.copy.seoRelease==='10')return;
+ const home=site.pages.find(p=>p.slug==='/');
+ const homeDesc=home?.description||site.settings.footer;
+ if(home)home.title=`${site.settings.brand} | Verified enquiries for makeup artists`;
+ if(home&&!home.description?.includes('verified'))home.description=homeDesc;
+ site.copy.seoRelease='10';
+}
 export const customerPath=(p:Site['directory'][number])=>'/community/'+encodeURIComponent(p.id);
 export function listedPeople(site:Site){return site.artists.map(a=>({id:a.id,name:a.name,city:a.city,bio:a.bio||'',image:a.image,instagram:a.instagram||'',services:a.services||[],keywords:a.keywords||'',profileUrl:a.profileUrl,url:artistPath(a),featured:featuredArtist(a)}));}
 export async function llmsCatalog(site:Site){const plans=site.plans.filter(p=>p.approved).map(p=>`- ${p.name}: ₹${((p.pricePaise||0)/100).toLocaleString('en-IN')} incl. GST · ${p.term}`).join('\n');const artists=publishedArtists(site).map(a=>`- ${a.name} (${a.city}): ${absolute(artistPath(a))}`).join('\n')||'- Publish artist profiles in Admin → Artists.';return [`# ${site.settings.brand} — public site map for search and assistants`,`${site.settings.tagline}`,`${site.settings.footer}`,'','## Canonical origin',absolute('/'),'','## Primary pages',...publicPaths.map(p=>`- ${absolute(p)}`),'','## Artist plans (GST-inclusive)',plans,'','## Featured makeup artists (MUA)',artists,'','## Policies',`- Terms: ${absolute('/terms')}`,`- Privacy: ${absolute('/privacy')}`,`- Refunds: ${absolute('/refunds')}`,`- Help: ${absolute('/help')}`,`- Merchant profiles: ${site.settings.merchantUrl}`,'','## Contact',`WhatsApp: +${site.settings.whatsapp}`,`Support hours: ${site.settings.supportHours}`,'','Machine-readable sitemap: '+absolute('/sitemap.xml')].join('\n');}
