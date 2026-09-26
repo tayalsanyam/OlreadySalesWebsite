@@ -3,15 +3,28 @@ import {createHmac,timingSafeEqual} from 'node:crypto';
 import type {State,Plan,Coupon,Cart} from './schema';
 import {staffNotifyPurchase} from './staff-notify';
 import {quote,planAllowsOnlinePayment} from './commerce';
-export type OrderStatus='creating'|'pending'|'failed'|'paid'|'partially_refunded'|'refunded'|'needs_review';
+export type OrderStatus='creating'|'pending'|'failed'|'paid'|'partially_refunded'|'refunded'|'needs_review'|'cancelled';
 export type PaymentAttempt={id:string;status:string;amount:number;currency:string;method:string;bank:string;wallet:string;createdAt:string;verifiedAt:string;capturedAt?:string;error:string};
 export type PaymentGatewayId='razorpay'|'payu';
 export type Order={id:string;cartId:string;createdAt:string;updatedAt:string;paidAt?:string;status:OrderStatus;gateway:PaymentGatewayId;mode:'test'|'live';keyId:string;providerOrderId:string;customer:{name:string;email:string;phone:string;business:string;gstin:string};plan:Plan;coupon:Coupon|null;subtotal:number;discount:number;tax:number;total:number;currency:'INR';attempts:PaymentAttempt[];refunds:{id:string;paymentId:string;amount:number;status:string;createdAt:string}[];events:{id:string;at:string;message:string}[];reviewReason:string;invoice:{status:'not_configured'|'pending'|'issued';number:string;url:string};followUp:{status:'new'|'contacted'|'resolved';note:string}};
 export function validSignature(raw:string,signature:string,secret:string){if(!/^[a-f0-9]{64}$/i.test(signature)||!secret)return false;return timingSafeEqual(Buffer.from(signature,'hex'),createHmac('sha256',secret).update(raw).digest());}
 export function appendEvent(o:Order,id:string,message:string,at=new Date().toISOString()){if(o.events.some(e=>e.id===id))return;o.events.push({id,message,at});o.updatedAt=at;}
+export function activeOrderForCart(s:State,cartId:string){return s.orders?.find(o=>o.cartId===cartId&&o.status!=='cancelled');}
+/** Unpaid checkout only — reopens cart so the customer can edit and pay again on a new order. */
+export function abandonUnpaidCheckout(s:State,c:Cart,now=new Date().toISOString()){
+ const o=activeOrderForCart(s,c.id);
+ if(!o)throw new Error('There is no payment in progress to change.');
+ if(capturedTotal(o)>0)throw new Error('This order is already paid. Contact OLREADY if you need to change details.');
+ if(c.status==='paid')throw new Error('This purchase is complete.');
+ o.status='cancelled';
+ o.updatedAt=now;
+ appendEvent(o,'abandoned-checkout','Customer chose to edit details and start again.',now);
+ c.status='open';
+ c.updated_at=now;
+}
 export function reserveOrder(s:State,c:Cart,ctx:{gateway:PaymentGatewayId;keyId:string;mode:'test'|'live'},now=new Date().toISOString()):{order:Order;created:boolean}{
  const {gateway,keyId,mode}=ctx;
- s.orders??=[];const existing=s.orders.find(o=>o.cartId===c.id);if(existing)return {order:existing,created:false};
+ s.orders??=[];const existing=activeOrderForCart(s,c.id);if(existing)return {order:existing,created:false};
  if(c.status!=='open'||!c.terms||!c.name.trim()||!/^\S+@\S+\.\S+$/.test(c.email)||!/^\+?[\d\s()-]{8,20}$/.test(c.phone))throw new Error('Save your name, valid email, phone and acceptance of terms before paying.');
  if(!s.published.settings.policiesApproved)throw new Error('Online checkout is not yet available. Please contact OLREADY.');
  const plan=s.published.plans.find(p=>p.id===c.planId);if(!plan||!planAllowsOnlinePayment(plan.id))throw new Error('This plan requires a conversation with OLREADY.');

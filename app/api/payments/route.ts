@@ -3,7 +3,7 @@ import {cookies} from 'next/headers';
 import {sameOrigin,json,fail} from '@/lib/api';
 import {mutate,readState} from '@/lib/store';
 import {hash} from '@/lib/secrets';
-import {reserveOrder,bindProviderOrder,bindPayUCheckout,appendEvent,validSignature,applyPayment,type Order} from '@/lib/orders';
+import {reserveOrder,bindProviderOrder,bindPayUCheckout,appendEvent,validSignature,applyPayment,abandonUnpaidCheckout,activeOrderForCart,type Order} from '@/lib/orders';
 import {flushImmediateJobs} from '@/lib/delivery';
 import {razorpay,assertAccount,reconcileOrder} from '@/lib/razorpay';
 import {gatewaysPublic,resolveCheckoutGateway} from '@/lib/payment-config';
@@ -20,7 +20,7 @@ export async function GET(){
  const anyEnabled=gateways.razorpay.enabled||gateways.payu.enabled;
  const t=await token();
  const cart=s.carts.find(c=>c.tokenHash===t);
- const o=s.orders?.find(o=>o.cartId===cart?.id);
+ const o=cart?activeOrderForCart(s,cart.id):undefined;
  const onlinePaymentAllowed=cart?planAllowsOnlinePayment(cart.planId):true;
  return NextResponse.json({
   enabled:anyEnabled&&onlinePaymentAllowed,
@@ -37,6 +37,15 @@ export async function POST(req:NextRequest){
   const s0=await readState();
   const t=await token();
   const origin=(process.env.APP_URL||req.nextUrl.origin).replace(/\/$/,'');
+
+  if(body.action==='abandon'){
+   await mutate(s=>{
+    const cart=s.carts.find(c=>c.tokenHash===t);
+    if(!cart)throw new Error('Save your selection first.');
+    abandonUnpaidCheckout(s,cart);
+   });
+   return NextResponse.json({ok:true});
+  }
 
   if(body.action==='create'){
    const g=resolveCheckoutGateway(body.gateway,s0.published.settings);
@@ -71,7 +80,7 @@ export async function POST(req:NextRequest){
 
   const s=await readState();
   const c=s.carts.find(c=>c.tokenHash===t);
-  const o=s.orders?.find(o=>o.cartId===c?.id);
+  const o=c?activeOrderForCart(s,c.id):undefined;
   if(!o)throw new Error('Order not found.');
   assertAccount(o);
 
