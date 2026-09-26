@@ -1,0 +1,2 @@
+import type {MetadataRoute} from 'next';import {absolute,origin} from '@/lib/seo';
+export default function robots():MetadataRoute.Robots{return {rules:[{userAgent:'*',allow:['/','/llms.txt','/artists/','/makeup-artists/','/community/'],disallow:['/admin','/api/','/checkout','/email-preferences','/resume','/dev-preview']},{userAgent:'GPTBot',allow:'/'},{userAgent:'ChatGPT-User',allow:'/'},{userAgent:'Google-Extended',allow:'/'},{userAgent:'anthropic-ai',allow:'/'},{userAgent:'ClaudeBot',allow:'/'}],sitemap:absolute('/sitemap.xml'),host:origin()};}

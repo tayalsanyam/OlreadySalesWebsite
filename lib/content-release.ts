@@ -1,0 +1,54 @@
+import type {Site} from './schema';
+/** Content transcribed from the owner-supplied September 15 plan collateral. */
+export function enrichContent(site:Site):Site {
+ const p=(slug:string)=>site.pages.find(p=>p.slug===slug)!;
+ const blocks=(items:[string,string,string][])=>items.map(([id,title,body])=>({id,title,body,eyebrow:'',image:'',button:'Compare plans',href:'/plans'}));
+ site.copy.plansNote='Prices shown are from our current plan brochure. Tax treatment will be confirmed by the team before payment. Enquiries and leads are not confirmed bookings. Privy is invite-only; its assured-business offer is subject to written terms.';
+ site.copy.inviteButton='Request an invitation';site.copy.taxPending='Tax treatment to be confirmed';
+ site.settings.newsletterTitle='Your next opportunity starts with staying connected.';
+ site.settings.newsletterBody='Get monthly offers, plan updates and selected artist stories from OLREADY.';
+ site.settings.artistBody='The work. The journey. The results. Meet the artists behind the numbers, with video stories from a few.';
+ site.settings.emptyArtists='Our featured artist stories are being curated. Ask the team for current artist results while we prepare their profiles and videos.';
+ site.settings.popupTitle='Keep your next move in the loop.';site.settings.popupBody='Join the OLREADY mailing list for monthly offers and plan updates. Unsubscribe whenever you like.';
+ p('/').body='You create the looks. We help you explore the opportunities. Discover OLREADY, meet our artists and find your plan.';
+ p('/').sections=blocks([
+ ['home-story','Your artistry deserves opportunity.','From bridal looks to occasion makeup, your portfolio tells your story. Give prospective clients a clear view of your work, then choose the enquiry access that fits your business.'],
+ ['home-plans','Three plans. Your next step.','Pro brings 60 verified enquiries and three months of access across three states. Phoenix and invite-only Privy offer six months of access with pan-India reach. Compare the details and speak to our team.'],
+ ['home-process','Your profile is where it begins.','Create or complete your artist profile on the OLREADY merchant website. Add your work, review your details and connect with our team to discuss the right plan.']]);
+ p('/benefits').heading='More reach. More possibilities.';p('/benefits').body='Bring your artistry to the conversation. Choose enquiry access, geography and support around the way you want to grow.';
+ p('/benefits').sections=blocks([
+ ['enquiries','Opportunities to start a conversation.','Pro includes 60 verified enquiries. Phoenix includes 100 verified leads, and Privy includes 120. Use the conversation to understand the client’s brief, share your portfolio and discuss availability.'],
+ ['reach','Choose how far you want to go.','Pro provides access across three states. Phoenix and Privy provide pan-India access. Discuss the locations you serve with the team before choosing.'],
+ ['support','A relationship manager, when your plan includes one.','Phoenix and Privy include a dedicated relationship manager. For questions about any plan or your artist profile, the OLREADY team is available on WhatsApp.'],
+ ['reversal','Clarity on lead reversal.','Phoenix and Privy include lead reversal. Ask the team for the eligibility conditions and process before purchasing; the brochure does not specify them.'],
+ ['portfolio','Let your work introduce you.','Complete your merchant profile with your portfolio and accurate service details. Keep your availability and client conversations up to date.']]);
+ p('/top-grossing-artists').body='Explore featured artist results and hear selected artists describe their experience in their own words.';
+ p('/top-grossing-artists').sections=blocks([['results-context','Understand the story behind the figure.','Every published result is shown with its reporting period and what the figure measures. Individual outcomes differ; use these stories to ask better questions about the opportunity for your own business.']]);
+ p('/how-it-works').body='Explore the opportunity. Find your plan. Build your artist profile.';
+ p('/how-it-works').sections=blocks([
+ ['step-one','01 / See what fits your business.','Explore the benefits and artist stories. Consider the locations you serve, the clients you want to reach and the support you need.'],
+ ['step-two','02 / Compare your options.','Review Pro at ₹18,999, Phoenix at ₹35,000 and invite-only Privy at ₹50,000. Compare enquiry allowances, duration and geographical access.'],
+ ['step-three','03 / Talk through the details.','Ask our team about taxes, plan terms and any applicable offers. For Privy, request an invitation and the written conditions of the assured-business offer.'],
+ ['step-four','04 / Make your profile yours.','Use the OLREADY merchant website to create or log in to your artist profile. Add your portfolio and check your business details. Our team can help with your next steps.']]);
+ p('/how-it-works').sections[3].button='Create your profile';p('/how-it-works').sections[3].href=site.settings.merchantUrl;
+ p('/plans').heading='Choose how far your artistry goes.';p('/plans').body='More reach. More opportunities. Compare Pro, Phoenix and Privy, and choose your next step with clarity.';
+ p('/checkout').heading='Complete your plan';p('/checkout').eyebrow='ONE STEP AWAY';p('/checkout').body='Secure checkout for OLREADY enquiry access.';
+ p('/help').heading='Good questions. Clear next steps.';p('/help').body='Find the details on plans, profiles and support—or talk to the team about your business.';
+ const data=[
+ {id:'pro',tagline:'Best seller',pricePaise:1899900,term:'3 months access',description:'More reach. More opportunities. More time to convert.',features:['60 verified enquiries','3 months access','3-state access'],geography:'Access across 3 states. Confirm your selected states with the team.',leadModel:'60 verified enquiries during the plan. An enquiry is not a confirmed booking.'},
+ {id:'phoenix',tagline:'Premium',pricePaise:3500000,term:'6 months access',description:'Built for professionals serious about consistent growth.',features:['100 verified leads','6 months access','Pan-India access','Lead reversal','Dedicated relationship manager'],geography:'Pan-India access.',leadModel:'100 verified leads. Lead reversal is subject to the applicable eligibility conditions.'},
+ {id:'privy',tagline:'Invite only',pricePaise:5000000,term:'6 months access',description:'Our most exclusive growth partnership. Available by invitation.',features:['120 verified leads','₹50,000 assured business*','6 months access','Pan-India access','Lead reversal','Dedicated relationship manager'],geography:'Pan-India access. Invite-only eligibility.',leadModel:'120 verified leads. Lead reversal is subject to the applicable eligibility conditions.'}
+ ];
+ site.plans=site.plans.map(plan=>({...plan,...data.find(d=>d.id===plan.id),id:plan.id,approved:true,featured:plan.id==='pro',version:2,exclusions:plan.id==='privy'?'*The brochure advertises ₹50,000 assured business, subject to terms. Obtain the written eligibility, measurement period and remedy conditions from the team before purchasing. This is not an unconditional earnings guarantee.':'Confirm enquiry eligibility and applicable plan conditions with the team before purchasing.',renewal:'Ask the team for current renewal pricing and conditions. No automatic renewal is initiated on this website.'}));
+ site.faqs=[
+ {id:'difference',category:'Plans',question:'What is included in each plan?',answer:'Pro is ₹18,999 for 60 verified enquiries, 3 months access and 3-state access. Phoenix is ₹35,000 for 100 verified leads, 6 months, pan-India access, lead reversal and a dedicated relationship manager. Invite-only Privy is ₹50,000 for 120 verified leads with the same duration, reach and support, plus an assured-business offer subject to written terms.'},
+ {id:'guarantee',category:'Plans',question:'Are enquiries or leads guaranteed bookings?',answer:'No. An enquiry or lead is an opportunity to speak with a prospective client, not a confirmed booking. Privy has a separate ₹50,000 assured-business offer subject to terms; request its written conditions from the team.'},
+ {id:'privy',category:'Plans',question:'How do I join Privy?',answer:'Privy is invite-only. Contact the team on WhatsApp to discuss eligibility and request an invitation. Review the written conditions of the assured-business offer before purchasing.'},
+ {id:'tax',category:'Plans',question:'Do the displayed prices include taxes?',answer:'The brochure lists the plan prices but does not specify tax treatment. Our team will confirm the applicable taxes and final amount before payment.'},
+ {id:'reversal',category:'Plans',question:'Which plans include lead reversal?',answer:'Phoenix and Privy include lead reversal. Ask our team which enquiries qualify, what evidence is required and how to request it.'},
+ ...site.faqs.filter(f=>!['difference','guarantee','privy','tax','reversal','offers','payment'].includes(f.id)),
+ {id:'offers',category:'Offers',question:'How do I hear about monthly offers?',answer:'Join our email list and confirm your subscription. You can unsubscribe at any time. Each offer has its own eligibility and validity dates.'},
+ {id:'payment',category:'Payments',question:'Can I pay on this website?',answer:'Yes. On checkout, confirm your plan and contact details, then pay securely with our payment partner. Your plan activates after successful payment. Questions? WhatsApp our team anytime.'}
+ ];
+ return site;
+}

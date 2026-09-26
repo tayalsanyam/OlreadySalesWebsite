@@ -1,0 +1,41 @@
+{
+  "name": "olready-partner",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "next build",
+    "start": "next start",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "db:seed": "node --env-file=.env.local --import tsx scripts/seed.ts",
+    "migration:bundle": "node --import tsx scripts/bundle-migration.ts",
+    "test:local": "node scripts/check-local.mjs",
+    "admin:setup": "node --env-file=.env.local scripts/setup-admin.mjs",
+    "content:update": "node --import tsx scripts/content-update.ts",
+    "redesign:update": "node --import tsx scripts/redesign-update.ts",
+    "sales:update": "node --import tsx scripts/sales-update.ts",
+    "verify:sales": "node scripts/verify-sales.mjs",
+    "verify:payments": "node scripts/verify-payments.mjs",
+    "verify:stack": "node --env-file=.env.local scripts/verify-stack.mjs",
+    "sync:supabase": "node --env-file=.env.local --import tsx scripts/sync-local-to-supabase.ts"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.116.0",
+    "next": "16.3.5",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2"
+  }
+}

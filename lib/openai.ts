@@ -1,0 +1,6 @@
+import 'server-only';
+export const aiConfigured=()=>Boolean(process.env.OPENAI_API_KEY);
+export const aiModel=()=>process.env.OPENAI_MODEL||'gpt-4.1-mini';
+export const aiEnabled=()=>process.env.OPENAI_ASSISTANT_ENABLED==='true'&&aiConfigured();
+export const aiDailyLimit=()=>Math.max(1,Math.min(10000,Number(process.env.OPENAI_DAILY_REQUEST_LIMIT)||200));
+export async function openai(path:string,options:{method?:string;body?:unknown;form?:FormData}={}){if(!aiConfigured())throw new Error('Set OPENAI_API_KEY on the server, then restart.');const res=await fetch('https://api.openai.com/v1/'+path,{method:options.method||'GET',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,...(!options.form?{'Content-Type':'application/json'}:{})},body:options.form|| (options.body?JSON.stringify(options.body):undefined),signal:AbortSignal.timeout(25000),cache:'no-store'});if(res.status===404&&options.method==='DELETE')return {deleted:true};if(!res.ok){if(res.status===401)throw new Error('OpenAI rejected the API key. Check the server configuration.');if(res.status===429)throw new Error('OpenAI quota or rate limit reached. Check API billing and limits.');if(res.status===404)throw new Error('OpenAI resource or model was not found in this project.');throw new Error(`OpenAI request failed (${res.status}). Please retry.`);}return res.json();}

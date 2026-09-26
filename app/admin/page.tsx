@@ -1,0 +1,1 @@
+import {Admin} from '@/components/Admin';import {demo} from '@/lib/store';export const dynamic='force-dynamic';export const metadata={title:'OLREADY staff workspace',robots:{index:false,follow:false}};export default function Page(){return <Admin demo={demo()}/>}

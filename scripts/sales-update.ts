@@ -1,0 +1,4 @@
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {upgradeV7} from '../lib/refinement-copy';
+import {initialState} from '../lib/seed';import {upgradeSales} from '../lib/sales-release';
+async function main(){await mkdir('.data',{recursive:true});let state;try{const raw=await readFile('.data/state.json','utf8');state=JSON.parse(raw);await writeFile('.data/before-sales-v8-'+Date.now()+'.json',raw,{mode:0o600});}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;state=initialState();}upgradeSales(state.draft);upgradeSales(state.published);upgradeV7(state.draft);upgradeV7(state.published);await writeFile('.data/state.json',JSON.stringify(state,null,2),{mode:0o600});console.log('Sales V8 content installed. Existing prices, artist records and customer records preserved. GST is included.');}main().catch(e=>{console.error(e.message);process.exitCode=1;});

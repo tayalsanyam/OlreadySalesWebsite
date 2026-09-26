@@ -1,0 +1,4 @@
+import {createHmac,timingSafeEqual} from 'node:crypto';
+function key(){const k=process.env.LINK_SIGNING_SECRET;if(!k||k.length<32)throw new Error('Configure LINK_SIGNING_SECRET (at least 32 characters)');return k;}
+export function signLink(kind:string,id:string,hours=168){const text=Buffer.from(JSON.stringify({kind,id,expires:Date.now()+hours*3600000})).toString('base64url');return text+'.'+createHmac('sha256',key()).update(text).digest('base64url');}
+export function verifyLink(token:string,kind:string){const [text,sig]=token.split('.');if(!text||!sig)throw new Error('Invalid link');const wanted=createHmac('sha256',key()).update(text).digest();const provided=Buffer.from(sig,'base64url');if(provided.length!==wanted.length||!timingSafeEqual(provided,wanted))throw new Error('Invalid link');const data=JSON.parse(Buffer.from(text,'base64url').toString());if(data.kind!==kind||data.expires<Date.now())throw new Error('Link expired');return data.id as string;}
