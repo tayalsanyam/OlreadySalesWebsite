@@ -2,7 +2,20 @@ import type {Cart, State} from './schema';
 import {quote} from './commerce';
 import {hash, secret} from './secrets';
 
-export type LastOrderSummary={id:string;plan:string;paidAt?:string};
+export type LastOrderSummary={
+ id:string;
+ plan:string;
+ term:string;
+ paidAt?:string;
+ name:string;
+ email:string;
+ subtotal:number;
+ discount:number;
+ tax:number;
+ taxPercent:number;
+ total:number;
+ coupon?:string;
+};
 
 /** After a completed purchase, start a new open cart (new cookie) and keep contact details. */
 export function startFreshCartAfterPaid(s:State,paidCart:Cart,newToken=secret(),now=new Date().toISOString()){
@@ -29,6 +42,19 @@ export function startFreshCartAfterPaid(s:State,paidCart:Cart,newToken=secret(),
   updated_at:now,
  };
  s.carts.push(cart);
- const lastOrder:LastOrderSummary|null=order?{id:order.id,plan:order.plan.name,paidAt:order.paidAt||order.updatedAt}:null;
+ const lastOrder:LastOrderSummary|null=order?{
+  id:order.id,
+  plan:order.plan.name,
+  term:order.plan.term,
+  paidAt:order.paidAt||order.updatedAt,
+  name:order.customer.name,
+  email:order.customer.email,
+  subtotal:order.subtotal,
+  discount:order.discount,
+  tax:order.tax,
+  taxPercent:order.plan.taxPercent,
+  total:order.total,
+  coupon:order.coupon?.code||undefined,
+ }:null;
  return {cart,newToken,lastOrder};
 }

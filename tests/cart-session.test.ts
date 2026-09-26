@@ -25,4 +25,6 @@ test('paid cart rotates to a new open cart with contact details copied',()=>{
  assert.equal(cart.coupon,'');
  assert.ok(newToken);
  assert.equal(lastOrder?.plan,'Pro');
+ assert.equal(lastOrder?.total,o.total);
+ assert.equal(lastOrder?.email,'artist@example.com');
 });
