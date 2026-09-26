@@ -10,19 +10,27 @@ Use this once for the initial Google listing. The site already ships crawlable p
 
 Redeploy after changing `APP_URL` so canonical links, sitemap URLs, and share images use the custom domain.
 
-## 2. Verify ownership (HTML tag)
+## 2. Verify ownership
 
 1. Open [Google Search Console](https://search.google.com/search-console) → **Add property** → **URL prefix** → `https://mua.olready.in`
-2. Choose **HTML tag** verification. Copy only the **content** value from the meta tag (not the full tag).
-3. In Vercel → Project → **Settings → Environment Variables** add:
 
-   ```env
-   GOOGLE_SITE_VERIFICATION=paste-content-value-here
-   ```
+### Option A — HTML file (recommended if Google gave you a file)
 
-4. Redeploy, then in Search Console click **Verify**.
+Google may provide a file named like `google7b97900bf783f7ca.html`. It lives in **`public/`** in this repo and is served at:
 
-The app emits `<meta name="google-site-verification" content="…" />` from `app/layout.tsx` when this variable is set.
+```text
+https://mua.olready.in/google7b97900bf783f7ca.html
+```
+
+Deploy to production, open that URL in a browser (you should see one line of plain text), then click **Verify** in Search Console.
+
+### Option B — HTML meta tag
+
+1. Choose **HTML tag** verification. Copy only the **content** value from the meta tag (not the full tag).
+2. In Vercel → **Environment Variables** add `GOOGLE_SITE_VERIFICATION=paste-content-value-here`
+3. Redeploy, then **Verify**.
+
+The app emits the meta tag from `app/layout.tsx` when that variable is set. You only need one verification method.
 
 ## 3. Submit the sitemap
 
