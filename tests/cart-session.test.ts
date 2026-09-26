@@ -1,0 +1,28 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {initialState} from '../lib/seed';
+import {quote} from '../lib/commerce';
+import {startFreshCartAfterPaid} from '../lib/cart-session';
+import {reserveOrder,bindPayUCheckout,applyPayUPayment} from '../lib/orders';
+
+test('paid cart rotates to a new open cart with contact details copied',()=>{
+ const s=initialState();
+ s.published.settings.policiesApproved=true;
+ const p=s.published.plans.find(x=>x.id==='pro')!;
+ p.approved=true;
+ const paid={id:'cart-paid',tokenHash:'old',name:'Artist',email:'artist@example.com',phone:'919999999999',business:'Studio',gstin:'',marketing:true,terms:true,coupon:'',planId:'pro',planVersion:p.version,...quote(p),status:'paid' as const,created_at:'2020-01-01',updated_at:'2020-01-01'};
+ s.carts.push(paid);
+ const open={...paid,id:'cart-open',status:'open' as const};
+ const o=reserveOrder(s,open,{gateway:'payu',keyId:'k',mode:'live'}).order;
+ o.cartId=paid.id;
+ bindPayUCheckout(o);
+ applyPayUPayment(s,o,{mihpayid:'pay1',status:'success',amountPaise:o.total},'evt');
+ const {cart,newToken,lastOrder}=startFreshCartAfterPaid(s,paid,'new-session-token');
+ assert.notEqual(cart.id,paid.id);
+ assert.equal(cart.status,'open');
+ assert.equal(cart.email,paid.email);
+ assert.equal(cart.terms,false);
+ assert.equal(cart.coupon,'');
+ assert.ok(newToken);
+ assert.equal(lastOrder?.plan,'Pro');
+});

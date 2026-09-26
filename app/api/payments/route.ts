@@ -10,11 +10,13 @@ import {gatewaysPublic,resolveCheckoutGateway} from '@/lib/payment-config';
 import {buildPayUCheckout} from '@/lib/payu';
 import {rateLimit} from '@/lib/limit';
 import {planAllowsOnlinePayment} from '@/lib/commerce';
+import {resolveCheckoutCartFromCookie} from '@/lib/cart-rotate-server';
 
 const safe=(o:Order)=>({id:o.id,status:o.status,total:o.total,plan:o.plan.name,mode:o.mode,gateway:o.gateway});
 async function token(){return hash((await cookies()).get('olready_cart')?.value||'');}
 
 export async function GET(){
+ await resolveCheckoutCartFromCookie();
  const s=await readState();
  const gateways=gatewaysPublic();
  const anyEnabled=gateways.razorpay.enabled||gateways.payu.enabled;

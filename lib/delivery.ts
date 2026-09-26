@@ -66,7 +66,8 @@ export async function processJobs(opts:ProcessJobsOptions={}){
     const order=s.orders?.find(o=>o.id===j.payload.orderId);
     const person=order?{id:order.id,email:order.customer.email}:s.subscribers.find(p=>p.id===j.payload.subscriberId)!;
     const token=enabled&&!order?signLink('unsubscribe',person.id,8760):'preview-only';
-    const values={name:order?.customer.name||cart?.name||'Artist',plan:order?.plan.name||s.published.plans.find(p=>p.id===cart?.planId)?.name||'',order_id:order?.id||'',merchant_url:s.published.settings.merchantUrl,support_url:`https://wa.me/${s.published.settings.whatsapp}`,confirm_url:`${base}/email-preferences?token=${encodeURIComponent(j.payload.token||'')}&action=confirm`,cart_url:`${base}/resume?token=${enabled?signLink('cart',cart?.id||''):'preview-only'}`,unsubscribe_url:`${base}/email-preferences?token=${token}&action=unsubscribe`,plans_url:`${base}/plans`};
+    const settings=s.published.settings;
+    const values={name:order?.customer.name||cart?.name||'Artist',plan:order?.plan.name||s.published.plans.find(p=>p.id===cart?.planId)?.name||'',order_id:order?.id||'',merchant_url:settings.merchantUrl,support_url:`https://wa.me/${settings.whatsapp}`,support_email:settings.supportEmail||'care@olready.in',support_hours:settings.supportHours||'',brand:settings.brand||'OLREADY',confirm_url:`${base}/email-preferences?token=${encodeURIComponent(j.payload.token||'')}&action=confirm`,cart_url:`${base}/resume?token=${enabled?signLink('cart',cart?.id||''):'preview-only'}`,unsubscribe_url:`${base}/email-preferences?token=${token}&action=unsubscribe`,plans_url:`${base}/plans`};
     subject=j.rendered?.subject||renderTemplate(template.subject,values);
     body=j.rendered?.body||renderTemplate(template.body,values);
     to=[person.email];
